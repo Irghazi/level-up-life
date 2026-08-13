@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Level Up Life",
+    "slug": "level-up-life",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#DCE4EE"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.trinitygate.leveluplife"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#DCE4EE",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "package": "com.trinitygate.leveluplife"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
