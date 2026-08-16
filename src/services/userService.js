@@ -16,8 +16,8 @@ export const userService = {
     return data;
   },
 
-  // Update profil (tambah XP, naik level, tambah gold)
-  updateStats: async (xpGain, goldGain = 0) => {
+  // Update profil (tambah XP, naik level, tambah gold, tambah stat spesifik)
+  updateStats: async (xpGain, goldGain = 0, statCategory = null) => {
     const profile = await userService.getProfile();
     if (!profile) throw new Error('Profile not found');
 
@@ -33,13 +33,23 @@ export const userService = {
       newXp = newXp - xpNeededForNextLevel; // Reset/Kurangi XP yang sudah terpakai
     }
 
+    const updates = {
+      level: newLevel,
+      xp: newXp,
+      gold: newGold
+    };
+
+    if (statCategory) {
+      const statKey = statCategory.toLowerCase();
+      const validStats = ['str', 'int', 'cha', 'vit', 'agi'];
+      if (validStats.includes(statKey)) {
+        updates[statKey] = (profile[statKey] || 0) + 1;
+      }
+    }
+
     const { data, error } = await supabase
       .from('users_profile')
-      .update({
-        level: newLevel,
-        xp: newXp,
-        gold: newGold
-      })
+      .update(updates)
       .eq('id', profile.id)
       .select()
       .single();

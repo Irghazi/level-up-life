@@ -14,8 +14,11 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
+import NeoTextInput from '../components/NeoTextInput';
 
 const { width } = Dimensions.get('window');
 
@@ -142,7 +145,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
       <Text style={styles.subheading}>Masukkan email yang kamu daftarkan</Text>
 
       <Text style={styles.label}>Masukkan Email yang terdaftar</Text>
-      <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
+      <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.email && styles.inputError]}>
         <TextInput
           style={styles.input}
           placeholder="Masukan email anda"
@@ -155,20 +158,20 @@ const ForgotPasswordScreen = ({ navigation }) => {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-      </View>
+      </NeoView>
       {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
-      <TouchableOpacity
-        style={[styles.actionBtn, isLoading && styles.btnDisabled]}
+      <NeoButton
+        style={{ marginTop: 6 }}
+        innerStyle={[styles.actionBtn, isLoading && styles.btnDisabled]}
         onPress={handleVerifyEmail}
         disabled={isLoading}
-        activeOpacity={0.85}
       >
         {isLoading
           ? <ActivityIndicator color="#fff" />
           : <Text style={styles.actionBtnText}>Verifikasi Email</Text>
         }
-      </TouchableOpacity>
+      </NeoButton>
     </>
   );
 
@@ -178,24 +181,25 @@ const ForgotPasswordScreen = ({ navigation }) => {
       <Text style={styles.subheading}>Masukkan email yang kamu daftarkan</Text>
 
       <Text style={styles.label}>Masukkan Email yang terdaftar</Text>
-      <View style={styles.inputWrapper}>
+      <NeoView style={{ marginBottom: 4 }} innerStyle={styles.inputWrapper}>
         <TextInput
           style={styles.input}
           value={email}
           editable={false}
           placeholderTextColor="#aaa"
         />
-      </View>
+      </NeoView>
 
       <Text style={styles.otpHint}>Masukan kode otp yang telah dikirim melalui email</Text>
 
       {/* OTP Boxes */}
       <View style={styles.otpRow}>
         {otp.map((digit, index) => (
-          <TextInput
+          <NeoTextInput
             key={index}
             ref={ref => otpRefs.current[index] = ref}
-            style={[
+            style={{ flex: 1 }}
+            innerStyle={[
               styles.otpBox,
               digit ? styles.otpBoxFilled : null,
               errors.otp ? styles.otpBoxError : null,
@@ -211,17 +215,17 @@ const ForgotPasswordScreen = ({ navigation }) => {
       </View>
       {errors.otp ? <Text style={[styles.errorText, { textAlign: 'center' }]}>{errors.otp}</Text> : null}
 
-      <TouchableOpacity
-        style={[styles.actionBtn, isLoading && styles.btnDisabled]}
+      <NeoButton
+        style={{ marginTop: 8 }}
+        innerStyle={[styles.actionBtn, isLoading && styles.btnDisabled]}
         onPress={handleConfirmOtp}
         disabled={isLoading}
-        activeOpacity={0.85}
       >
         {isLoading
           ? <ActivityIndicator color="#fff" />
           : <Text style={styles.actionBtnText}>Konfirmasi</Text>
         }
-      </TouchableOpacity>
+      </NeoButton>
 
       <TouchableOpacity style={styles.resendBtn} onPress={() => toast.info('OTP Dikirim Ulang 📨', 'Kode OTP baru telah dikirim ke emailmu.')}>
         <Text style={styles.resendText}>Kirim ulang kode OTP</Text>
@@ -232,7 +236,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const renderStep3 = () => (
     <>
       <Text style={styles.label}>Masukkan password baru</Text>
-      <View style={[styles.inputWrapper, errors.newPassword && styles.inputError]}>
+      <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.newPassword && styles.inputError]}>
         <TextInput
           style={[styles.input, { flex: 1 }]}
           placeholder="Masukkan password baru kamu"
@@ -247,11 +251,11 @@ const ForgotPasswordScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => setShowNewPass(!showNewPass)} style={styles.eyeBtn}>
           <Ionicons name={showNewPass ? 'eye' : 'eye-off'} size={20} color="#888" />
         </TouchableOpacity>
-      </View>
+      </NeoView>
       {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
 
       <Text style={styles.label}>Konfirmasi password baru</Text>
-      <View style={[styles.inputWrapper, errors.confirmPassword && styles.inputError]}>
+      <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.confirmPassword && styles.inputError]}>
         <TextInput
           style={[styles.input, { flex: 1 }]}
           placeholder="Konfirmasi password baru kamu"
@@ -266,20 +270,20 @@ const ForgotPasswordScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => setShowConfirmPass(!showConfirmPass)} style={styles.eyeBtn}>
           <Ionicons name={showConfirmPass ? 'eye' : 'eye-off'} size={20} color="#888" />
         </TouchableOpacity>
-      </View>
+      </NeoView>
       {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
 
-      <TouchableOpacity
-        style={[styles.actionBtn, isLoading && styles.btnDisabled]}
+      <NeoButton
+        style={{ marginTop: 8 }}
+        innerStyle={[styles.actionBtn, isLoading && styles.btnDisabled]}
         onPress={handleSavePassword}
         disabled={isLoading}
-        activeOpacity={0.85}
       >
         {isLoading
           ? <ActivityIndicator color="#fff" />
           : <Text style={styles.actionBtnText}>Simpan</Text>
         }
-      </TouchableOpacity>
+      </NeoButton>
     </>
   );
 
@@ -326,12 +330,12 @@ const ForgotPasswordScreen = ({ navigation }) => {
           </View>
 
           {/* Form Card */}
-          <Animated.View
-            style={[styles.card, { transform: [{ translateX: shakeAnim }, { translateY: slideAnim }] }]}
-          >
+          <Animated.View style={[{ transform: [{ translateX: shakeAnim }, { translateY: slideAnim }] }]}>
+            <NeoView style={{ marginBottom: 20 }} innerStyle={styles.card}>
             {step === 1 && renderStep1()}
             {step === 2 && renderStep2()}
             {step === 3 && renderStep3()}
+            </NeoView>
           </Animated.View>
 
           {/* Footer */}
@@ -396,7 +400,7 @@ const styles = StyleSheet.create({
   stepDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.35)',
   },
   stepDotActive: {
@@ -407,11 +411,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 20,
     padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
+    borderWidth: 2,
+    borderColor: '#000',
   },
   heading: {
     fontSize: 24,
@@ -436,9 +437,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
     paddingHorizontal: 14,
     height: 50,
     marginBottom: 4,
@@ -475,13 +476,13 @@ const styles = StyleSheet.create({
   otpBox: {
     flex: 1,
     height: 52,
-    backgroundColor: '#F4F7FF',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#D0D8F0',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A2340',
+    color: '#000',
     textAlign: 'center',
   },
   otpBoxFilled: {
@@ -492,26 +493,23 @@ const styles = StyleSheet.create({
     borderColor: '#FF4D4D',
   },
   actionBtn: {
-    backgroundColor: '#22C55E',
-    borderRadius: 12,
+    backgroundColor: '#00FF87',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 14,
-    marginBottom: 10,
-    shadowColor: '#22C55E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    marginTop: 12,
+    marginBottom: 14,
   },
   btnDisabled: {
     opacity: 0.7,
   },
   actionBtnText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: '800',
+    color: '#000',
     letterSpacing: 0.5,
   },
   resendBtn: {

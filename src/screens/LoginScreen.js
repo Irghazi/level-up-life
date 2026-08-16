@@ -17,6 +17,8 @@ import {
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,7 +29,7 @@ const LoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const toast = useToast();
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -64,8 +66,14 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    toast.info('Segera Hadir! 🚀', 'Fitur login dengan Google sedang dalam pengembangan.');
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    const result = await loginWithGoogle();
+    setIsLoading(false);
+    if (!result.success) {
+      shake();
+      toast.error('Google Login Gagal', result.message);
+    }
   };
 
   return (
@@ -101,16 +109,15 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           {/* Form Card */}
-          <Animated.View
-            style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}
-          >
+          <Animated.View style={[{ transform: [{ translateX: shakeAnim }] }]}>
+            <NeoView style={{ marginBottom: 20 }} innerStyle={styles.card}>
             {/* Heading */}
             <Text style={styles.heading}>SELAMAT DATANG 👋</Text>
             <Text style={styles.subheading}>Email kamu akan dipakai untuk proses login</Text>
 
             {/* Email Input */}
             <Text style={styles.label}>Email</Text>
-            <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
+            <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.email && styles.inputError]}>
               <TextInput
                 style={styles.input}
                 placeholder="Masukan email anda"
@@ -124,12 +131,12 @@ const LoginScreen = ({ navigation }) => {
                 autoCapitalize="none"
                 autoComplete="email"
               />
-            </View>
+            </NeoView>
             {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
             {/* Password Input */}
             <Text style={styles.label}>Password</Text>
-            <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
+            <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.password && styles.inputError]}>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Masukkan Password anda"
@@ -152,7 +159,7 @@ const LoginScreen = ({ navigation }) => {
                   color="#888"
                 />
               </TouchableOpacity>
-            </View>
+            </NeoView>
             {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
             {/* Forgot Password */}
@@ -161,10 +168,10 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             {/* Login Button */}
-            <TouchableOpacity
-              style={[styles.loginBtn, isLoading && styles.btnDisabled]}
+            <NeoButton
+              style={{ marginTop: 6, marginBottom: 12 }}
+              innerStyle={[styles.loginBtn, isLoading && styles.btnDisabled]}
               onPress={handleLogin}
-              activeOpacity={0.85}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -172,7 +179,7 @@ const LoginScreen = ({ navigation }) => {
               ) : (
                 <Text style={styles.loginBtnText}>Login</Text>
               )}
-            </TouchableOpacity>
+            </NeoButton>
 
             {/* Divider */}
             <View style={styles.dividerRow}>
@@ -182,14 +189,14 @@ const LoginScreen = ({ navigation }) => {
             </View>
 
             {/* Google Button */}
-            <TouchableOpacity
-              style={styles.googleBtn}
+            <NeoButton
+              style={{ marginTop: 12, marginBottom: 16 }}
+              innerStyle={styles.googleBtn}
               onPress={handleGoogleLogin}
-              activeOpacity={0.85}
             >
               <AntDesign name="google" size={20} color="#EA4335" />
               <Text style={styles.googleBtnText}>Lanjut dengan Google</Text>
-            </TouchableOpacity>
+            </NeoButton>
 
             {/* Register Link */}
             <View style={styles.registerRow}>
@@ -198,6 +205,7 @@ const LoginScreen = ({ navigation }) => {
                 <Text style={styles.registerLink}>Daftar disini</Text>
               </TouchableOpacity>
             </View>
+            </NeoView>
           </Animated.View>
 
           {/* Footer */}
@@ -248,11 +256,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 20,
     padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderWidth: 2,
+    borderColor: '#000',
   },
   heading: {
     fontSize: 26,
@@ -277,11 +284,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
     paddingHorizontal: 14,
     height: 50,
+    marginBottom: 4,
     marginBottom: 4,
   },
   inputError: {
@@ -312,25 +320,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   loginBtn: {
-    backgroundColor: '#22C55E',
-    borderRadius: 12,
+    backgroundColor: '#00FF87',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    shadowColor: '#22C55E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    marginBottom: 16,
   },
   btnDisabled: {
     opacity: 0.7,
   },
   loginBtnText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: '800',
+    color: '#000',
     letterSpacing: 0.5,
   },
   dividerRow: {
@@ -353,17 +359,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 8,
     height: 50,
-    borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderWidth: 2,
+    borderColor: '#000',
     gap: 10,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 16,
   },
   googleBtnText: {
     fontSize: 14,

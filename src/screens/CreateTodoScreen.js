@@ -10,8 +10,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import GridBackground from '../components/GridBackground';
 import { useToast } from '../components/Toast';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
+import NeoTextInput from '../components/NeoTextInput';
+import { aiService } from '../services/aiService';
 
 const NEO = {
   bg: '#FFFFFF',
@@ -24,6 +30,7 @@ const NEO = {
 
 const PRIORITIES = ['Deadline mepet', 'Sangat penting', 'Penting', 'Opsional'];
 const DIFFICULTIES = ['Mudah', 'Menengah', 'Sulit'];
+const STATS_CATEGORIES = ['STR', 'INT', 'CHA', 'VIT', 'AGI'];
 
 const CreateTodoScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -34,12 +41,53 @@ const CreateTodoScreen = ({ navigation, route }) => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [notes, setNotes] = useState('');
-  const [priority, setPriority] = useState('Deadline mepet');
-  const [difficulty, setDifficulty] = useState('Sulit');
+  const [priority, setPriority] = useState(null); // Unselected by default
+  const [difficulty, setDifficulty] = useState(null); // Unselected by default
+  const [category, setCategory] = useState(null); // Unselected by default
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [pickerType, setPickerType] = useState('start');
+
+  // Auto-detect effect
+  React.useEffect(() => {
+    // Only detect if title is long enough
+    if (!title || title.trim().length < 3) return;
+
+    const timerId = setTimeout(async () => {
+      setIsDetecting(true);
+      const result = await aiService.analyzeTask(title.trim());
+      
+      setIsDetecting(false);
+      
+      if (result.isAnomaly) {
+        toast.error('Peringatan Anomali!', result.anomalyReason || 'Judul tugas tidak masuk akal atau merugikan.');
+      } else if (result.category) {
+        setCategory(result.category);
+        toast.success('Kategori Otomatis 🪄', `Tugasmu terdeteksi sebagai aktivitas ${result.category}`);
+      }
+    }, 1500); // 1.5s debounce
+
+    return () => clearTimeout(timerId);
+  }, [title]);
 
   const handleCreateTask = () => {
     if (!title.trim()) {
       toast.error('Judul Kosong!', 'Mohon isi judul tugas terlebih dahulu.');
+      return;
+    }
+    
+    if (!priority) {
+      toast.error('Prioritas Kosong!', 'Mohon pilih prioritas tugas terlebih dahulu.');
+      return;
+    }
+
+    if (!difficulty) {
+      toast.error('Kesulitan Kosong!', 'Mohon pilih tingkat kesulitan tugas terlebih dahulu.');
+      return;
+    }
+
+    if (!category) {
+      toast.error('Kategori Kosong!', 'Mohon pilih kategori tugas terlebih dahulu.');
       return;
     }
 
@@ -51,6 +99,7 @@ const CreateTodoScreen = ({ navigation, route }) => {
       notes: notes.trim(),
       priority,
       difficulty,
+      category,
       completed: false,
     };
 
@@ -80,65 +129,84 @@ const CreateTodoScreen = ({ navigation, route }) => {
         contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 20 }]}
       >
         {/* Judul */}
-        <Text style={styles.labelUnderline}>Judul</Text>
-        <View style={styles.inputShadow}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ketik judul"
-            placeholderTextColor="#C8C8C8"
-            value={title}
-            onChangeText={setTitle}
-          />
+        <View style={styles.titleRow}>
+          <Text style={styles.labelUnderline}>Judul</Text>
+          {isDetecting && (
+            <ActivityIndicator size="small" color={NEO.black} style={{ marginLeft: 10 }} />
+          )}
         </View>
+        <NeoTextInput
+          style={{ marginBottom: 4 }}
+          innerStyle={styles.input}
+          placeholder="Ketik judul"
+          placeholderTextColor="#C8C8C8"
+          value={title}
+          onChangeText={setTitle}
+        />
+
+        {/* Kategori RPG */}
+        <Text style={styles.label}>Kategori (Status RPG)</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+          {STATS_CATEGORIES.map(cat => (
+            <NeoButton
+              key={cat}
+              onPress={() => setCategory(cat)}
+              innerStyle={[styles.chip, category === cat && styles.chipSelected]}
+            >
+              <Text style={[styles.chipText, category === cat && styles.chipTextSelected]}>
+                {cat}
+              </Text>
+            </NeoButton>
+          ))}
+        </ScrollView>
 
         {/* Tanggal */}
         <Text style={styles.label}>Tanggal</Text>
-        <View style={styles.inputShadow}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ketik Tanggal"
-            placeholderTextColor="#C8C8C8"
-            value={date}
-            onChangeText={setDate}
-          />
-        </View>
+        <NeoTextInput
+          style={{ marginBottom: 4 }}
+          innerStyle={styles.input}
+          placeholder="Ketik Tanggal"
+          placeholderTextColor="#C8C8C8"
+          value={date}
+          onChangeText={setDate}
+        />
 
         {/* Waktu */}
         <Text style={styles.label}>Waktu</Text>
         <View style={styles.timeRow}>
-          <View style={[styles.inputShadow, { flex: 1 }]}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ketik waktu mulai"
-              placeholderTextColor="#C8C8C8"
-              value={startTime}
-              onChangeText={setStartTime}
-            />
-          </View>
-          <View style={[styles.inputShadow, { flex: 1 }]}>
-            <TextInput
-              style={styles.input}
-              placeholder="waktu selesai"
-              placeholderTextColor="#C8C8C8"
-              value={endTime}
-              onChangeText={setEndTime}
-            />
-          </View>
+          <NeoButton
+            style={{ flex: 1 }}
+            innerStyle={styles.timeInputBtn}
+            onPress={() => { setPickerType('start'); setShowTimePicker(true); }}
+          >
+            <Text style={[styles.timeInputText, !startTime && { color: '#C8C8C8' }]}>
+              {startTime || 'Waktu mulai'}
+            </Text>
+          </NeoButton>
+          
+          <NeoButton
+            style={{ flex: 1 }}
+            innerStyle={styles.timeInputBtn}
+            onPress={() => { setPickerType('end'); setShowTimePicker(true); }}
+          >
+            <Text style={[styles.timeInputText, !endTime && { color: '#C8C8C8' }]}>
+              {endTime || 'Waktu selesai'}
+            </Text>
+          </NeoButton>
         </View>
 
         {/* Catatan */}
         <Text style={styles.label}>Catatan</Text>
-        <View style={styles.inputShadow}>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Ketik catatan disini"
-            placeholderTextColor="#C8C8C8"
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            numberOfLines={3}
-          />
-        </View>
+        <NeoTextInput
+          style={{ marginBottom: 4 }}
+          innerStyle={[styles.input, styles.textArea]}
+          placeholder="Ketik catatan disini"
+          placeholderTextColor="#C8C8C8"
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          numberOfLines={3}
+        />
 
         {/* Prioritas */}
         <Text style={styles.label}>Prioritas</Text>
@@ -146,19 +214,15 @@ const CreateTodoScreen = ({ navigation, route }) => {
           {PRIORITIES.map((p) => {
             const isSelected = priority === p;
             return (
-              <TouchableOpacity
+              <NeoButton
                 key={p}
                 onPress={() => setPriority(p)}
-                activeOpacity={0.85}
+                innerStyle={[styles.chip, isSelected && styles.chipSelected]}
               >
-                <View style={[styles.chipShadow, isSelected && styles.chipSelectedShadow]}>
-                  <View style={[styles.chip, isSelected && styles.chipSelected]}>
-                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                      {p}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                  {p}
+                </Text>
+              </NeoButton>
             );
           })}
         </View>
@@ -169,20 +233,16 @@ const CreateTodoScreen = ({ navigation, route }) => {
           {DIFFICULTIES.map((d) => {
             const isSelected = difficulty === d;
             return (
-              <TouchableOpacity
+              <NeoButton
                 key={d}
                 onPress={() => setDifficulty(d)}
-                activeOpacity={0.85}
                 style={{ flex: 1 }}
+                innerStyle={[styles.chip, isSelected && styles.chipSelected]}
               >
-                <View style={[styles.chipShadow, isSelected && styles.chipSelectedShadow]}>
-                  <View style={[styles.chip, isSelected && styles.chipSelected]}>
-                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                      {d}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                  {d}
+                </Text>
+              </NeoButton>
             );
           })}
         </View>
@@ -190,16 +250,38 @@ const CreateTodoScreen = ({ navigation, route }) => {
         <View style={{ height: 24 }} />
 
         {/* Submit Button */}
-        <TouchableOpacity
-          style={styles.submitShadow}
+        <NeoButton
+          style={{ marginBottom: 16 }}
           onPress={handleCreateTask}
-          activeOpacity={0.85}
+          innerStyle={styles.submitBtn}
         >
-          <View style={styles.submitBtn}>
-            <Text style={styles.submitBtnText}>Buat tugas</Text>
-          </View>
-        </TouchableOpacity>
+          <Text style={styles.submitBtnText}>Buat tugas</Text>
+        </NeoButton>
       </ScrollView>
+
+      {/* DateTime Picker Modal */}
+      {showTimePicker && (
+        <DateTimePicker
+          value={new Date()}
+          mode="time"
+          is24Hour={true}
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowTimePicker(false);
+            if (selectedDate) {
+              const hours = selectedDate.getHours().toString().padStart(2, '0');
+              const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+              const timeString = `${hours}:${minutes}`;
+              
+              if (pickerType === 'start') {
+                setStartTime(timeString);
+              } else {
+                setEndTime(timeString);
+              }
+            }
+          }}
+        />
+      )}
     </GridBackground>
   );
 };
@@ -243,16 +325,10 @@ const styles = StyleSheet.create({
     textDecorationColor: '#0088FF',
   },
   inputShadow: {
-    backgroundColor: NEO.white,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-    marginBottom: 4,
+    backgroundColor: NEO.white,
   },
   input: {
     paddingHorizontal: 14,
@@ -260,14 +336,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: NEO.black,
+    backgroundColor: NEO.white,
+    borderRadius: 8,
   },
   textArea: {
-    minHeight: 60,
+    minHeight: 80,
     textAlignVertical: 'top',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  chipScroll: {
+    flexGrow: 0,
+    marginBottom: 10,
   },
   timeRow: {
     flexDirection: 'row',
     gap: 14,
+  },
+  timeInputBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: NEO.white,
+    borderRadius: 8,
+    justifyContent: 'center',
+    minHeight: 46,
+  },
+  timeInputText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: NEO.black,
   },
   chipGrid: {
     flexDirection: 'row',
@@ -279,25 +381,19 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   chipShadow: {
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 2.5, height: 2.5 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  chipSelectedShadow: {
-    shadowOffset: { width: 3, height: 3 },
   },
   chip: {
     backgroundColor: NEO.white,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 4,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 6,
+    marginBottom: 6,
   },
   chipSelected: {
     backgroundColor: NEO.cyan,
@@ -314,11 +410,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
     marginTop: 10,
   },
   submitBtn: {
@@ -331,7 +422,7 @@ const styles = StyleSheet.create({
   submitBtnText: {
     fontSize: 18,
     fontWeight: '900',
-    color: NEO.white,
+    color: NEO.black,
     letterSpacing: 0.5,
   },
 });

@@ -12,6 +12,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import GridBackground from '../components/GridBackground';
 import { useToast } from '../components/Toast';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
+import NeoTextInput from '../components/NeoTextInput';
 
 const NEO = {
   bg: '#FFFFFF',
@@ -79,86 +82,76 @@ const CreateGuildScreen = ({ navigation, route }) => {
       >
         {/* GUILD NAME */}
         <Text style={styles.label}>GUILD NAME</Text>
-        <View style={styles.inputShadow}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter an epic name..."
-            placeholderTextColor="#AAA"
-            value={guildName}
-            onChangeText={setGuildName}
-          />
-        </View>
+        <NeoTextInput
+          style={{ marginBottom: 4 }}
+          innerStyle={styles.input}
+          placeholder="Enter an epic name..."
+          placeholderTextColor="#AAA"
+          value={guildName}
+          onChangeText={setGuildName}
+        />
 
         {/* DESCRIPTION */}
         <Text style={styles.label}>DESCRIPTION</Text>
-        <View style={styles.inputShadow}>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="What is your guild about? Describe your rules, goals, and vibe."
-            placeholderTextColor="#AAA"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={5}
-          />
-        </View>
+        <NeoTextInput
+          style={{ marginBottom: 4 }}
+          innerStyle={[styles.input, styles.textArea]}
+          placeholder="What is your guild about? Describe your rules, goals, and vibe."
+          placeholderTextColor="#AAA"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          numberOfLines={5}
+        />
 
         {/* CATEGORY */}
         <Text style={styles.label}>CATEGORY</Text>
-        <TouchableOpacity
+        <NeoButton
           onPress={() => setShowCategoryPicker(!showCategoryPicker)}
-          activeOpacity={0.85}
+          innerStyle={styles.pickerBox}
         >
-          <View style={styles.inputShadow}>
-            <View style={styles.pickerBox}>
-              <Text style={[styles.pickerText, !category && { color: '#AAA' }]}>
-                {category || 'Select a category...'}
-              </Text>
-              <Ionicons
-                name={showCategoryPicker ? 'chevron-up' : 'chevron-down'}
-                size={18}
-                color={NEO.black}
-              />
-            </View>
-          </View>
-        </TouchableOpacity>
+          <Text style={[styles.pickerText, !category && { color: '#AAA' }]}>
+            {category || 'Select a category...'}
+          </Text>
+          <Ionicons
+            name={showCategoryPicker ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={NEO.black}
+          />
+        </NeoButton>
 
         {/* Dropdown Options */}
         {showCategoryPicker && (
-          <View style={styles.dropdownShadow}>
-            <View style={styles.dropdownBox}>
-              {CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setCategory(cat);
-                    setShowCategoryPicker(false);
-                  }}
-                >
-                  <Text style={[styles.dropdownItemText, category === cat && { fontWeight: '900' }]}>
-                    {cat}
-                  </Text>
-                  {category === cat && <Ionicons name="checkmark" size={16} color={NEO.black} />}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+          <NeoView style={{ marginTop: 4 }} innerStyle={styles.dropdownBox}>
+            {CATEGORIES.map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setCategory(cat);
+                  setShowCategoryPicker(false);
+                }}
+              >
+                <Text style={[styles.dropdownItemText, category === cat && { fontWeight: '900' }]}>
+                  {cat}
+                </Text>
+                {category === cat && <Ionicons name="checkmark" size={16} color={NEO.black} />}
+              </TouchableOpacity>
+            ))}
+          </NeoView>
         )}
 
         <View style={{ height: 28 }} />
 
         {/* CREATE BUTTON */}
-        <TouchableOpacity
-          style={styles.createShadow}
+        <NeoButton
+          style={{ marginBottom: 16 }}
           onPress={handleCreateGuild}
-          activeOpacity={0.85}
+          innerStyle={styles.createBtn}
         >
-          <View style={styles.createBtn}>
-            <Ionicons name="add-circle" size={20} color={NEO.black} />
-            <Text style={styles.createBtnText}>CREATE</Text>
-          </View>
-        </TouchableOpacity>
+          <Ionicons name="add-circle" size={20} color={NEO.black} />
+          <Text style={styles.createBtnText}>CREATE</Text>
+        </NeoButton>
       </ScrollView>
     </GridBackground>
   );
@@ -197,14 +190,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   inputShadow: {
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
     backgroundColor: NEO.white,
     marginBottom: 4,
   },
@@ -232,14 +220,9 @@ const styles = StyleSheet.create({
     color: NEO.black,
   },
   dropdownShadow: {
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
     backgroundColor: NEO.white,
     marginTop: -2,
     marginBottom: 6,
@@ -262,14 +245,9 @@ const styles = StyleSheet.create({
     color: NEO.black,
   },
   createShadow: {
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
     marginBottom: 10,
   },
   createBtn: {

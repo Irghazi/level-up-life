@@ -55,7 +55,7 @@ const LanguageScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={NEO.black} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Language</Text>
+        <Text style={styles.headerTitle}>{t('selectLanguageTitle')}</Text>
       </View>
 
       <ScrollView
@@ -143,14 +143,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardShadow: {
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
+    boxShadow: '2px 2px 0px #0D0D0D',
     backgroundColor: NEO.white,
   },
   cardSelectedShadow: {
@@ -161,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     gap: 14,
-    borderRadius: 2,
+    borderRadius: 8,
   },
   cardSelected: {
     backgroundColor: NEO.yellow,
@@ -175,15 +171,15 @@ const styles = StyleSheet.create({
     color: NEO.black,
   },
   langSub: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: '#555',
-    marginTop: 2,
+    marginTop: 4,
   },
   checkCircle: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
     backgroundColor: NEO.green,

@@ -163,14 +163,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardShadow: {
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
+    boxShadow: '2px 2px 0px #0D0D0D',
     backgroundColor: NEO.white,
   },
   card: {
@@ -182,7 +178,7 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 40,
     height: 40,
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
     backgroundColor: NEO.yellow,
@@ -204,7 +200,7 @@ const styles = StyleSheet.create({
   toggleTrack: {
     width: 48,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
     backgroundColor: '#EEEEEE',
@@ -217,7 +213,7 @@ const styles = StyleSheet.create({
   toggleThumb: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
     backgroundColor: NEO.white,

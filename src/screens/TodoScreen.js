@@ -15,6 +15,10 @@ import GridBackground from '../components/GridBackground';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { useLanguage } from '../context/LanguageContext';
+import { useProfile } from '../context/ProfileContext';
+import LevelUpModal from '../components/LevelUpModal';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
 
 const NEO = {
   bg: '#FFFFFF',
@@ -39,24 +43,44 @@ const TodoScreen = ({ navigation }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { addXp, healHp } = useProfile();
 
   const [todos, setTodos] = useState(INITIAL_TODOS);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('today'); // 'today' | 'pending' | 'completed'
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevel, setNewLevel] = useState(1);
 
-  const firstName = user?.name?.split(' ')[0] || 'Farha';
+  const firstName = user?.name?.split(' ')[0] || 'User';
 
-  const toggleTodo = (id) => {
-    setTodos(prev => prev.map(t => {
-      if (t.id === id) {
-        const nextCompleted = !t.completed;
-        if (nextCompleted) {
-          toast.success('Tugas Selesai! 🎉', `"${t.text}" berhasil diselesaikan.`);
-        }
-        return { ...t, completed: nextCompleted };
+  const toggleTodo = async (id) => {
+    let gainedXp = false;
+    let taskCategory = null;
+    let taskText = '';
+
+    setTodos(prev => {
+      const target = prev.find(t => t.id === id);
+      if (!target) return prev;
+      
+      const nextCompleted = !target.completed;
+      if (nextCompleted) {
+        taskCategory = target.category || 'AGI';
+        taskText = target.text;
+        gainedXp = true;
       }
-      return t;
-    }));
+      
+      return prev.map(t => t.id === id ? { ...t, completed: nextCompleted } : t);
+    });
+
+    if (gainedXp) {
+      toast.success('Tugas Selesai! 🎉', `"${taskText}" berhasil diselesaikan. +10 XP, +5 💰, +1 ${taskCategory}`);
+      const res = await addXp(10, 5, taskCategory);
+      healHp(5);
+      if (res.levelUp) {
+        setNewLevel(res.data.level);
+        setShowLevelUp(true);
+      }
+    }
   };
 
   const handleAddTaskFromForm = (newTask) => {
@@ -75,6 +99,12 @@ const TodoScreen = ({ navigation }) => {
     <GridBackground style={{ paddingTop: insets.top }}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
+      <LevelUpModal 
+        visible={showLevelUp} 
+        level={newLevel} 
+        onClose={() => setShowLevelUp(false)} 
+      />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
@@ -89,28 +119,24 @@ const TodoScreen = ({ navigation }) => {
           </View>
 
           {/* Mellisa Avatar */}
-          <TouchableOpacity onPress={() => navigation.navigate('Chat')}>
-            <View style={styles.avatarShadow}>
-              <Image source={require('../../assets/mellisa.png')} style={styles.avatarImage} />
-            </View>
-          </TouchableOpacity>
+          <NeoButton innerStyle={styles.avatar} onPress={() => navigation.navigate('Chat')}>
+            <Image source={require('../../assets/mellisa.png')} style={styles.avatarImage} />
+          </NeoButton>
         </View>
 
         {/* Search Bar */}
-        <View style={styles.searchShadow}>
-          <View style={styles.searchBar}>
-            <View style={styles.searchIconBox}>
-              <Ionicons name="search" size={18} color={NEO.black} />
-            </View>
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t('searchTask')}
-              placeholderTextColor="#C8C8C8"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
+        <NeoView style={{ marginBottom: 16 }} innerStyle={styles.searchBar}>
+          <View style={styles.searchIconBox}>
+            <Ionicons name="search" size={18} color={NEO.black} />
           </View>
-        </View>
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('searchTask')}
+            placeholderTextColor="#C8C8C8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </NeoView>
 
         {/* Date Display */}
         <Text style={styles.dateText}>09 Mei 2026</Text>
@@ -124,19 +150,15 @@ const TodoScreen = ({ navigation }) => {
           ].map(f => {
             const isSelected = activeFilter === f.key;
             return (
-              <TouchableOpacity
+              <NeoButton
                 key={f.key}
                 onPress={() => setActiveFilter(f.key)}
-                activeOpacity={0.85}
+                innerStyle={[styles.filterBtn, isSelected && styles.filterSelected]}
               >
-                <View style={[styles.filterShadow, isSelected && styles.filterSelectedShadow]}>
-                  <View style={[styles.filterBtn, isSelected && styles.filterSelected]}>
-                    <Text style={[styles.filterText, isSelected && styles.filterTextSelected]}>
-                      {f.label}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                <Text style={[styles.filterText, isSelected && styles.filterTextSelected]}>
+                  {f.label}
+                </Text>
+              </NeoButton>
             );
           })}
         </View>
@@ -146,70 +168,57 @@ const TodoScreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>{t('todayTasks')}</Text>
           <View style={styles.actionBtnRow}>
             {/* Calendar Icon Button */}
-            <TouchableOpacity
+            <NeoButton
               onPress={() => navigation.navigate('CalendarTodo')}
-              activeOpacity={0.85}
+              innerStyle={[styles.actionIconBox, { backgroundColor: NEO.green }]}
             >
-              <View style={styles.actionBtnShadow}>
-                <View style={[styles.actionIconBox, { backgroundColor: NEO.green }]}>
-                  <MaterialCommunityIcons name="calendar-month" size={20} color={NEO.black} />
-                </View>
-              </View>
-            </TouchableOpacity>
+              <MaterialCommunityIcons name="calendar-month" size={20} color={NEO.black} />
+            </NeoButton>
 
             {/* Add Icon Button */}
-            <TouchableOpacity
+            <NeoButton
               onPress={() => navigation.navigate('CreateTodo', { onAddTask: handleAddTaskFromForm })}
-              activeOpacity={0.85}
+              innerStyle={[styles.actionIconBox, { backgroundColor: NEO.green }]}
             >
-              <View style={styles.actionBtnShadow}>
-                <View style={[styles.actionIconBox, { backgroundColor: NEO.green }]}>
-                  <Ionicons name="add-circle-outline" size={22} color={NEO.black} />
-                </View>
-              </View>
-            </TouchableOpacity>
+              <Ionicons name="add-circle-outline" size={22} color={NEO.black} />
+            </NeoButton>
           </View>
         </View>
 
         {/* Todo Items List */}
         <View style={styles.todoList}>
           {filteredTodos.map((item) => (
-            <TouchableOpacity
+            <NeoButton
               key={item.id}
               onPress={() => toggleTodo(item.id)}
-              activeOpacity={0.85}
+              style={{ marginBottom: 12 }}
+              innerStyle={styles.todoCard}
             >
-              <View style={styles.todoShadow}>
-                <View style={styles.todoCard}>
-                  {/* Checkbox Box */}
-                  <View style={[styles.checkbox, item.completed && styles.checkboxChecked]}>
-                    {item.completed && (
-                      <Ionicons name="checkmark" size={18} color={NEO.black} />
-                    )}
-                  </View>
-
-                  {/* Todo Text */}
-                  <Text style={[styles.todoText, item.completed && styles.todoTextCompleted]}>
-                    {item.text}
-                  </Text>
-                </View>
+              {/* Checkbox Box */}
+              <View style={[styles.checkbox, item.completed && styles.checkboxChecked]}>
+                {item.completed && (
+                  <Ionicons name="checkmark" size={18} color={NEO.black} />
+                )}
               </View>
-            </TouchableOpacity>
+
+              {/* Todo Text */}
+              <Text style={[styles.todoText, item.completed && styles.todoTextCompleted]}>
+                {item.text}
+              </Text>
+            </NeoButton>
           ))}
         </View>
 
         <View style={{ height: 20 }} />
 
         {/* Kembali Button */}
-        <TouchableOpacity
-          style={styles.backShadow}
+        <NeoButton
+          style={{ marginTop: 10 }}
           onPress={() => navigation.navigate('Home')}
-          activeOpacity={0.85}
+          innerStyle={styles.backBtn}
         >
-          <View style={styles.backBtn}>
-            <Text style={styles.backBtnText}>{t('backBtn')}</Text>
-          </View>
-        </TouchableOpacity>
+          <Text style={styles.backBtnText}>{t('backBtn')}</Text>
+        </NeoButton>
       </ScrollView>
     </GridBackground>
   );
@@ -246,11 +255,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
   },
   avatarImage: {
     width: 44,
@@ -261,11 +265,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
     backgroundColor: NEO.white,
   },
   searchBar: {
@@ -273,11 +272,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 6,
     paddingVertical: 4,
+    backgroundColor: NEO.white,
+    borderRadius: 8,
   },
   searchIconBox: {
     width: 38,
     height: 38,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
     backgroundColor: NEO.yellow,
@@ -302,23 +303,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   filterShadow: {
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 2.5, height: 2.5 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  filterSelectedShadow: {
-    shadowOffset: { width: 3, height: 3 },
   },
   filterBtn: {
     paddingVertical: 7,
     paddingHorizontal: 16,
     backgroundColor: NEO.white,
-    borderRadius: 4,
+    borderRadius: 8,
   },
   filterSelected: {
     backgroundColor: NEO.cyan,
@@ -346,15 +339,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  navIconActive: {
+    backgroundColor: NEO.green,
+    borderRadius: 8,
+    borderWidth: 2.5,
+    borderColor: NEO.black,
+    boxShadow: '2px 2px 0px #0D0D0D',
+  },
   actionBtnShadow: {
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 2.5, height: 2.5 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
   },
   actionIconBox: {
     width: 36,
@@ -367,14 +362,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   todoShadow: {
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
     backgroundColor: NEO.white,
   },
   todoCard: {
@@ -382,6 +372,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     gap: 12,
+    backgroundColor: NEO.white,
+    borderRadius: 8,
   },
   checkbox: {
     width: 32,
@@ -410,10 +402,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 2,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
     elevation: 6,
     marginTop: 6,
   },
@@ -427,7 +415,7 @@ const styles = StyleSheet.create({
   backBtnText: {
     fontSize: 18,
     fontWeight: '900',
-    color: NEO.white,
+    color: NEO.black,
     letterSpacing: 0.5,
   },
 });

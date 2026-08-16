@@ -14,6 +14,9 @@ import GridBackground from '../components/GridBackground';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { useLanguage } from '../context/LanguageContext';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
+import { useProfile } from '../context/ProfileContext';
 
 const NEO = {
   bg: '#FFFFFF',
@@ -72,10 +75,20 @@ const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const toast = useToast();
   const { t } = useLanguage();
+  const { profile } = useProfile();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState('profile');
+  const activeTab = 'profile';
 
-  const firstName = user?.name?.split(' ')[0] || 'FARHA';
+  const firstName = user?.name?.split(' ')[0] || 'USER';
+  const fullName = user?.name || 'User';
+
+  const level = profile?.level || 1;
+  const xp = profile?.xp || 0;
+  const gold = profile?.gold || 0;
+  const xpNeeded = level * 100;
+  const progressPercent = Math.min((xp / xpNeeded) * 100, 100);
+
+  const maxStatVal = 10; // Fallback
 
   const handleLogout = () => {
     logout();
@@ -95,7 +108,7 @@ const ProfileScreen = ({ navigation }) => {
     { key: 'chat', icon: 'chatbubble-ellipses', label: 'Chat' },
     { key: 'add', icon: 'add', label: '', isCenter: true },
     { key: 'group', icon: 'people', label: 'Grup' },
-    { key: 'profile', icon: 'person-circle', label: 'Profil' },
+    { key: 'profile', icon: 'settings', label: 'Pengaturan' },
   ];
 
   return (
@@ -104,9 +117,13 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatarShadow}>
-          <View style={styles.avatar}>
+        <View style={styles.avatarContainer}>
+          <NeoView innerStyle={styles.avatar}>
             <Text style={styles.avatarText}>{firstName.charAt(0).toUpperCase()}</Text>
+          </NeoView>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{fullName}</Text>
+            <Text style={styles.subtitle}>{user?.email || 'user@example.com'}</Text>
           </View>
         </View>
       </View>
@@ -115,49 +132,43 @@ const ProfileScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Title */}
+        {/* Title Settings */}
         <Text style={styles.title}>{t('settingsTitle')}</Text>
         <Text style={styles.subtitle}>{t('settingsSub')}</Text>
 
         {/* Settings Cards List */}
         <View style={styles.itemsList}>
           {SETTINGS_ITEMS.map((item) => (
-            <TouchableOpacity
+            <NeoButton
               key={item.id}
               onPress={() => handleItemPress(item)}
-              activeOpacity={0.85}
+              style={{ marginBottom: 14 }}
+              innerStyle={styles.card}
             >
-              <View style={styles.cardShadow}>
-                <View style={styles.card}>
-                  {/* Icon Square Box */}
-                  <View style={[styles.iconBox, { backgroundColor: item.boxColor }]}>
-                    <Ionicons name={item.icon} size={22} color={item.iconColor || NEO.black} />
-                  </View>
-
-                  {/* Title */}
-                  <Text style={styles.itemTitle}>{item.title}</Text>
-
-                  {/* Arrow Right */}
-                  <Ionicons name="arrow-forward" size={20} color={NEO.black} />
-                </View>
+              {/* Icon Square Box */}
+              <View style={[styles.iconBox, { backgroundColor: item.boxColor }]}>
+                <Ionicons name={item.icon} size={22} color={item.iconColor || NEO.black} />
               </View>
-            </TouchableOpacity>
+
+              {/* Title */}
+              <Text style={styles.itemTitle}>{item.title}</Text>
+
+              {/* Arrow Right */}
+              <Ionicons name="arrow-forward" size={20} color={NEO.black} />
+            </NeoButton>
           ))}
         </View>
 
         <View style={{ height: 16 }} />
 
         {/* LOG OUT BUTTON */}
-        <TouchableOpacity
-          style={styles.logoutShadow}
+        <NeoButton
           onPress={handleLogout}
-          activeOpacity={0.85}
+          innerStyle={styles.logoutBtn}
         >
-          <View style={styles.logoutBtn}>
-            <Ionicons name="log-out-outline" size={22} color={NEO.white} />
-            <Text style={styles.logoutText}>{t('logOut')}</Text>
-          </View>
-        </TouchableOpacity>
+          <Ionicons name="log-out-outline" size={22} color={NEO.white} />
+          <Text style={styles.logoutText}>{t('logOut')}</Text>
+        </NeoButton>
 
         <View style={{ height: 20 }} />
       </ScrollView>
@@ -167,17 +178,13 @@ const ProfileScreen = ({ navigation }) => {
         {navItems.map((item) => {
           if (item.isCenter) {
             return (
-              <TouchableOpacity
+              <NeoButton
                 key={item.key}
-                style={styles.centerNavOuter}
+                innerStyle={styles.centerNavBtn}
                 onPress={() => navigation.navigate('Todo')}
-                activeOpacity={0.85}
               >
-                <View style={styles.centerNavShadow} />
-                <View style={styles.centerNavBtn}>
-                  <Ionicons name="add" size={30} color={NEO.black} />
-                </View>
-              </TouchableOpacity>
+                <Ionicons name="add" size={30} color={NEO.black} />
+              </NeoButton>
             );
           }
           const isActive = activeTab === item.key;
@@ -186,7 +193,6 @@ const ProfileScreen = ({ navigation }) => {
               key={item.key}
               style={styles.navItem}
               onPress={() => {
-                setActiveTab(item.key);
                 if (item.key === 'home') navigation.navigate('Home');
                 else if (item.key === 'chat') navigation.navigate('Chat');
                 else if (item.key === 'group') navigation.navigate('Guild');
@@ -212,20 +218,99 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
     backgroundColor: NEO.white,
     borderBottomWidth: 3,
     borderBottomColor: NEO.black,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  },
+  avatarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: NEO.black,
+    marginBottom: 6,
+  },
+  rpgStatsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  badgeShadow: {
+    boxShadow: '2px 2px 0px #0D0D0D',
+  },
+  levelBadge: {
+    backgroundColor: NEO.yellowBox,
+    borderWidth: 2,
+    borderColor: NEO.black,
+    borderRadius: 8,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+  },
+  levelText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: NEO.black,
+  },
+  goldBadge: {
+    backgroundColor: NEO.white,
+    borderWidth: 2,
+    borderColor: NEO.black,
+    borderRadius: 8,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+  },
+  goldText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: NEO.black,
+  },
+  xpBarWrapper: {
+    width: '100%',
+    maxWidth: 200,
+  },
+  xpBarShadow: {
+    boxShadow: '2px 2px 0px #0D0D0D',
+  },
+  xpBarContainer: {
+    backgroundColor: NEO.white,
+    borderWidth: 2,
+    borderColor: NEO.black,
+    borderRadius: 8,
+    height: 20,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  xpBarFill: {
+    backgroundColor: NEO.green,
+    height: '100%',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    borderRightWidth: 2,
+    borderColor: NEO.black,
+  },
+  xpText: {
+    position: 'absolute',
+    width: '100%',
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: '900',
+    color: NEO.black,
+    textShadowColor: NEO.white,
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
   avatarShadow: {
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    boxShadow: '2px 2px 0px #0D0D0D',
   },
   avatar: {
     width: 44,
@@ -238,6 +323,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: 18, fontWeight: '900', color: NEO.black },
+  avatarContainer: { flexDirection: 'row', alignItems: 'center', gap: 14, width: '100%', paddingHorizontal: 20 },
+  profileInfo: { flex: 1 },
+  profileName: { fontSize: 20, fontWeight: '900', color: NEO.black },
 
   scrollContent: {
     paddingHorizontal: 20,
@@ -249,6 +337,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: NEO.black,
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   subtitle: {
     fontSize: 13,
@@ -262,14 +351,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardShadow: {
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
     backgroundColor: NEO.white,
   },
   card: {
@@ -277,6 +361,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     gap: 14,
+    backgroundColor: NEO.white,
+    borderRadius: 8,
   },
   iconBox: {
     width: 44,
@@ -295,14 +381,9 @@ const styles = StyleSheet.create({
   },
 
   logoutShadow: {
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
     marginTop: 10,
   },
   logoutBtn: {
@@ -312,6 +393,7 @@ const styles = StyleSheet.create({
     backgroundColor: NEO.logoutBg,
     paddingVertical: 14,
     gap: 8,
+    borderRadius: 8,
   },
   logoutText: {
     fontSize: 16,
@@ -339,19 +421,16 @@ const styles = StyleSheet.create({
   navIconWrapper: {
     width: 40,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   navIconActive: {
     backgroundColor: NEO.green,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO.black,
-    shadowColor: NEO.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    boxShadow: '2px 2px 0px #0D0D0D',
   },
   centerNavOuter: {
     flex: 1,
@@ -360,16 +439,7 @@ const styles = StyleSheet.create({
     marginTop: -18,
     position: 'relative',
   },
-  centerNavShadow: {
-    position: 'absolute',
-    top: 4,
-    left: '50%',
-    marginLeft: -26,
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: NEO.black,
-  },
+
   centerNavBtn: {
     width: 52,
     height: 52,

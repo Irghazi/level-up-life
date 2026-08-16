@@ -17,6 +17,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -107,14 +109,13 @@ const RegisterScreen = ({ navigation }) => {
           </View>
 
           {/* Form Card */}
-          <Animated.View
-            style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}
-          >
+          <Animated.View style={[{ transform: [{ translateX: shakeAnim }] }]}>
+            <NeoView style={{ marginBottom: 20 }} innerStyle={styles.card}>
             <Text style={styles.heading}>DAFTAR</Text>
 
             {/* Nama Input */}
             <Text style={styles.label}>Nama</Text>
-            <View style={[styles.inputWrapper, errors.name && styles.inputError]}>
+            <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.name && styles.inputError]}>
               <TextInput
                 style={styles.input}
                 placeholder="Masukan nama anda"
@@ -126,12 +127,12 @@ const RegisterScreen = ({ navigation }) => {
                 }}
                 autoCapitalize="words"
               />
-            </View>
+            </NeoView>
             {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
 
             {/* Email Input */}
             <Text style={styles.label}>Email</Text>
-            <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
+            <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.email && styles.inputError]}>
               <TextInput
                 style={styles.input}
                 placeholder="Masukkan email anda"
@@ -145,12 +146,12 @@ const RegisterScreen = ({ navigation }) => {
                 autoCapitalize="none"
                 autoComplete="email"
               />
-            </View>
+            </NeoView>
             {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
             {/* Password Input */}
             <Text style={styles.label}>Password</Text>
-            <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
+            <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.password && styles.inputError]}>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Masukan password anda"
@@ -168,12 +169,12 @@ const RegisterScreen = ({ navigation }) => {
               >
                 <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="#888" />
               </TouchableOpacity>
-            </View>
+            </NeoView>
             {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
             {/* Confirm Password Input */}
             <Text style={styles.label}>Konfirmasi Password</Text>
-            <View style={[styles.inputWrapper, errors.confirmPassword && styles.inputError]}>
+            <NeoView style={{ marginBottom: 4 }} innerStyle={[styles.inputWrapper, errors.confirmPassword && styles.inputError]}>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Masukan Password anda"
@@ -191,16 +192,15 @@ const RegisterScreen = ({ navigation }) => {
               >
                 <Ionicons name={showConfirmPassword ? 'eye' : 'eye-off'} size={20} color="#888" />
               </TouchableOpacity>
-            </View>
+            </NeoView>
             {errors.confirmPassword ? (
               <Text style={styles.errorText}>{errors.confirmPassword}</Text>
             ) : null}
 
-            {/* Register Button */}
-            <TouchableOpacity
-              style={[styles.registerBtn, isLoading && styles.btnDisabled]}
+            <NeoButton
+              style={{ marginTop: 12, marginBottom: 16 }}
+              innerStyle={[styles.registerBtn, isLoading && styles.btnDisabled]}
               onPress={handleRegister}
-              activeOpacity={0.85}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -208,7 +208,7 @@ const RegisterScreen = ({ navigation }) => {
               ) : (
                 <Text style={styles.registerBtnText}>Lanjutkan</Text>
               )}
-            </TouchableOpacity>
+            </NeoButton>
 
             {/* Login Link */}
             <View style={styles.loginRow}>
@@ -217,6 +217,7 @@ const RegisterScreen = ({ navigation }) => {
                 <Text style={styles.loginLink}>Login Disini</Text>
               </TouchableOpacity>
             </View>
+            </NeoView>
           </Animated.View>
 
           {/* Footer */}
@@ -267,11 +268,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 20,
     padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
+    borderWidth: 2,
+    borderColor: '#000',
   },
   heading: {
     fontSize: 28,
@@ -291,9 +289,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
     paddingHorizontal: 14,
     height: 50,
     marginBottom: 4,
@@ -316,26 +314,23 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   registerBtn: {
-    backgroundColor: '#22C55E',
-    borderRadius: 12,
+    backgroundColor: '#00FF87',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 12,
     marginBottom: 14,
-    shadowColor: '#22C55E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
   },
   btnDisabled: {
     opacity: 0.7,
   },
   registerBtnText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: '800',
+    color: '#000',
     letterSpacing: 0.5,
   },
   loginRow: {

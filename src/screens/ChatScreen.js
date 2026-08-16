@@ -17,6 +17,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import GridBackground from '../components/GridBackground';
+import { useLanguage } from '../context/LanguageContext';
+import NeoView from '../components/NeoView';
+import NeoButton from '../components/NeoButton';
+import NeoTextInput from '../components/NeoTextInput';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 
@@ -81,7 +85,7 @@ const ChatScreen = ({ navigation }) => {
 
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState('');
-  const [activeTab, setActiveTab] = useState('chat');
+  const activeTab = 'chat';
   const [showMenu, setShowMenu] = useState(false);
 
   // Mentor Selection & 30-Day Lock state
@@ -132,7 +136,7 @@ const ChatScreen = ({ navigation }) => {
     { key: 'chat', icon: 'chatbubble-ellipses', label: 'Chat' },
     { key: 'add', icon: 'add', label: '', isCenter: true },
     { key: 'group', icon: 'people', label: 'Grup' },
-    { key: 'profile', icon: 'person-circle', label: 'Profil' },
+    { key: 'profile', icon: 'settings', label: 'Profil' },
   ];
 
   const sendMessage = () => {
@@ -265,15 +269,12 @@ const ChatScreen = ({ navigation }) => {
         </View>
 
         {/* 3 Dots Menu Button */}
-        <TouchableOpacity
-          style={styles.menuBtn}
+        <NeoButton
+          innerStyle={styles.menuBtnBox}
           onPress={() => setShowMenu(true)}
-          activeOpacity={0.8}
         >
-          <View style={styles.menuBtnBox}>
-            <Ionicons name="ellipsis-vertical" size={20} color={NEO_COLORS.black} />
-          </View>
-        </TouchableOpacity>
+          <Ionicons name="ellipsis-vertical" size={20} color={NEO_COLORS.black} />
+        </NeoButton>
       </View>
 
       {/* Mentor Tone Selection Modal */}
@@ -288,8 +289,7 @@ const ChatScreen = ({ navigation }) => {
           activeOpacity={1}
           onPress={() => setShowMenu(false)}
         >
-          <View style={styles.menuModalShadow}>
-            <TouchableOpacity activeOpacity={1} style={styles.menuModal}>
+          <NeoView innerStyle={styles.menuModal}>
               <Text style={styles.modalTitle}>PILIH MENTOR KAMU</Text>
               <Text style={styles.modalSub}>
                 Pilih antara 2 gaya Mentor. Setelah disimpan, mentor dikunci & baru dapat diubah kembali setelah 7 hari.
@@ -306,19 +306,18 @@ const ChatScreen = ({ navigation }) => {
               )}
 
               {/* Option 1: Mentor Penyabar */}
-              <TouchableOpacity
+              <NeoButton
                 style={[
-                  styles.optionCardShadow,
                   selectedTempMode === 'lembut' && styles.optionCardActiveShadow,
                   isLocked && { opacity: 0.7 }
                 ]}
-                onPress={() => !isLocked && setSelectedTempMode('lembut')}
-                activeOpacity={isLocked ? 1 : 0.85}
-              >
-                <View style={[
+                innerStyle={[
                   styles.optionCard,
                   selectedTempMode === 'lembut' && styles.optionCardActive
-                ]}>
+                ]}
+                onPress={() => !isLocked && setSelectedTempMode('lembut')}
+                disabled={isLocked}
+              >
                   <Text style={styles.optionEmoji}>🌸</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.optionTitle}>Mentor Penyabar</Text>
@@ -327,23 +326,21 @@ const ChatScreen = ({ navigation }) => {
                   {selectedTempMode === 'lembut' && (
                     <Ionicons name="checkmark-circle" size={22} color={NEO_COLORS.black} />
                   )}
-                </View>
-              </TouchableOpacity>
+              </NeoButton>
 
               {/* Option 2: Mentor Tegas */}
-              <TouchableOpacity
+              <NeoButton
                 style={[
-                  styles.optionCardShadow,
                   selectedTempMode === 'tegas' && styles.optionCardActiveShadow,
                   isLocked && { opacity: 0.7 }
                 ]}
-                onPress={() => !isLocked && setSelectedTempMode('tegas')}
-                activeOpacity={isLocked ? 1 : 0.85}
-              >
-                <View style={[
+                innerStyle={[
                   styles.optionCard,
                   selectedTempMode === 'tegas' && styles.optionCardActive
-                ]}>
+                ]}
+                onPress={() => !isLocked && setSelectedTempMode('tegas')}
+                disabled={isLocked}
+              >
                   <Text style={styles.optionEmoji}>🔥</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.optionTitle}>Mentor Tegas</Text>
@@ -352,35 +349,28 @@ const ChatScreen = ({ navigation }) => {
                   {selectedTempMode === 'tegas' && (
                     <Ionicons name="checkmark-circle" size={22} color={NEO_COLORS.black} />
                   )}
-                </View>
-              </TouchableOpacity>
+              </NeoButton>
 
               {/* Save Button */}
               {!isLocked ? (
-                <TouchableOpacity
-                  style={styles.saveBtnShadow}
+                <NeoButton
                   onPress={handleSaveMentorMode}
-                  activeOpacity={0.85}
+                  innerStyle={styles.saveBtn}
                 >
-                  <View style={styles.saveBtn}>
-                    <Ionicons name="lock-closed" size={18} color={NEO_COLORS.black} />
-                    <Text style={styles.saveBtnText}>SIMPAN MENTOR (KUNCI 7 HARI)</Text>
-                  </View>
-                </TouchableOpacity>
+                  <Ionicons name="lock-closed" size={18} color={NEO_COLORS.black} />
+                  <Text style={styles.saveBtnText}>SIMPAN MENTOR (KUNCI 7 HARI)</Text>
+                </NeoButton>
               ) : (
-                <TouchableOpacity
-                  style={[styles.saveBtnShadow, { opacity: 0.5 }]}
+                <NeoButton
+                  style={{ opacity: 0.5 }}
                   onPress={() => toast.info('Terkunci 🔒', `Mentor dapat diubah kembali dalam ${daysRemaining} hari.`)}
-                  activeOpacity={0.85}
+                  innerStyle={[styles.saveBtn, { backgroundColor: '#CCCCCC' }]}
                 >
-                  <View style={[styles.saveBtn, { backgroundColor: '#CCCCCC' }]}>
-                    <Ionicons name="lock-closed" size={18} color={NEO_COLORS.black} />
-                    <Text style={styles.saveBtnText}>TERKUNCI ({daysRemaining} HARI)</Text>
-                  </View>
-                </TouchableOpacity>
+                  <Ionicons name="lock-closed" size={18} color={NEO_COLORS.black} />
+                  <Text style={styles.saveBtnText}>TERKUNCI ({daysRemaining} HARI)</Text>
+                </NeoButton>
               )}
-            </TouchableOpacity>
-          </View>
+          </NeoView>
         </TouchableOpacity>
       </Modal>
 
@@ -402,31 +392,26 @@ const ChatScreen = ({ navigation }) => {
 
         {/* Neo Input Bar */}
         <View style={styles.inputBar}>
-          <View style={styles.inputWrapper}>
-            <View style={styles.inputShadow} />
-            <View style={styles.inputInner}>
-              <TextInput
-                style={styles.input}
-                placeholder="Ketik pesan..."
-                placeholderTextColor="#999"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-                onSubmitEditing={sendMessage}
-              />
-              <TouchableOpacity
-                style={[styles.sendBtn, inputText.trim() && styles.sendBtnActive]}
-                onPress={sendMessage}
-                disabled={!inputText.trim()}
-              >
-                <View style={styles.sendShadow} />
-                <View style={[styles.sendInner, inputText.trim() && styles.sendInnerActive]}>
-                  <Ionicons name="send" size={18} color={inputText.trim() ? NEO_COLORS.black : '#bbb'} />
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <NeoView innerStyle={styles.inputInner}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ketik pesan..."
+              placeholderTextColor="#999"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+              onSubmitEditing={sendMessage}
+            />
+            <NeoButton
+              style={[styles.sendBtn, inputText.trim() && styles.sendBtnActive]}
+              innerStyle={[styles.sendInner, inputText.trim() && styles.sendInnerActive]}
+              onPress={sendMessage}
+              disabled={!inputText.trim()}
+            >
+              <Ionicons name="send" size={18} color={inputText.trim() ? NEO_COLORS.black : '#bbb'} />
+            </NeoButton>
+          </NeoView>
         </View>
       </KeyboardAvoidingView>
 
@@ -435,17 +420,13 @@ const ChatScreen = ({ navigation }) => {
         {navItems.map((item) => {
           if (item.isCenter) {
             return (
-              <TouchableOpacity
+              <NeoButton
                 key={item.key}
-                style={styles.centerNavOuter}
+                innerStyle={styles.centerNavBtn}
                 onPress={() => navigation.navigate('Todo')}
-                activeOpacity={0.85}
               >
-                <View style={styles.centerNavShadow} />
-                <View style={styles.centerNavBtn}>
-                  <Ionicons name="add" size={30} color={NEO_COLORS.black} />
-                </View>
-              </TouchableOpacity>
+                <Ionicons name="add" size={30} color={NEO_COLORS.black} />
+              </NeoButton>
             );
           }
           const isActive = activeTab === item.key;
@@ -454,7 +435,6 @@ const ChatScreen = ({ navigation }) => {
               key={item.key}
               style={styles.navItem}
               onPress={() => {
-                setActiveTab(item.key);
                 if (item.key === 'home') navigation.navigate('Home');
                 else if (item.key === 'group') navigation.navigate('Guild');
                 else if (item.key === 'profile') navigation.navigate('Profile');
@@ -521,7 +501,7 @@ const styles = StyleSheet.create({
   modeBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 1.5,
     borderColor: NEO_COLORS.black,
   },
@@ -539,7 +519,7 @@ const styles = StyleSheet.create({
   onlineDot: {
     width: 7,
     height: 7,
-    borderRadius: 4,
+    borderRadius: 8,
     backgroundColor: NEO_COLORS.green,
     borderWidth: 1,
     borderColor: NEO_COLORS.black,
@@ -573,14 +553,9 @@ const styles = StyleSheet.create({
   },
   menuModalShadow: {
     width: width * 0.88,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 3,
     borderColor: NEO_COLORS.black,
-    shadowColor: NEO_COLORS.black,
-    shadowOffset: { width: 6, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 12,
     backgroundColor: NEO_COLORS.white,
   },
   menuModal: {
@@ -620,24 +595,20 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   optionCardShadow: {
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO_COLORS.black,
     backgroundColor: NEO_COLORS.white,
   },
   optionCardActiveShadow: {
     borderWidth: 2.5,
-    shadowColor: NEO_COLORS.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
     gap: 12,
+    backgroundColor: NEO_COLORS.white,
     borderRadius: 8,
   },
   optionCardActive: {
@@ -662,11 +633,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: NEO_COLORS.black,
-    shadowColor: NEO_COLORS.black,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
     marginTop: 6,
   },
   saveBtn: {
@@ -675,7 +641,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: NEO_COLORS.lightGreen,
     paddingVertical: 12,
-    borderRadius: 6,
+    borderRadius: 8,
     gap: 8,
   },
   saveBtnText: {
@@ -739,7 +705,7 @@ const styles = StyleSheet.create({
     left: 4,
     right: -4,
     bottom: -4,
-    borderRadius: 14,
+    borderRadius: 8,
     backgroundColor: NEO_COLORS.black,
   },
   bubbleShadowUser: {
@@ -751,7 +717,7 @@ const styles = StyleSheet.create({
     right: -4,
   },
   bubble: {
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO_COLORS.black,
     padding: 12,
@@ -801,14 +767,14 @@ const styles = StyleSheet.create({
     left: 4,
     right: -4,
     bottom: -4,
-    borderRadius: 14,
+    borderRadius: 8,
     backgroundColor: NEO_COLORS.black,
   },
   inputInner: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: NEO_COLORS.white,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO_COLORS.black,
     paddingHorizontal: 14,
@@ -834,13 +800,13 @@ const styles = StyleSheet.create({
     left: 3,
     right: -3,
     bottom: -3,
-    borderRadius: 10,
+    borderRadius: 8,
     backgroundColor: NEO_COLORS.black,
   },
   sendInner: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO_COLORS.black,
     backgroundColor: '#eee',
@@ -870,19 +836,16 @@ const styles = StyleSheet.create({
   navIconWrapper: {
     width: 40,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   navIconActive: {
     backgroundColor: NEO_COLORS.green,
+    borderRadius: 8,
     borderWidth: 2.5,
     borderColor: NEO_COLORS.black,
-    shadowColor: NEO_COLORS.black,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    boxShadow: '2px 2px 0px #0D0D0D',
   },
   centerNavOuter: {
     flex: 1,
@@ -891,16 +854,7 @@ const styles = StyleSheet.create({
     marginTop: -18,
     position: 'relative',
   },
-  centerNavShadow: {
-    position: 'absolute',
-    top: 4,
-    left: '50%',
-    marginLeft: -26,
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: NEO_COLORS.black,
-  },
+
   centerNavBtn: {
     width: 52,
     height: 52,
